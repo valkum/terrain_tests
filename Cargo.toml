@@ -1,0 +1,14 @@
+[package]
+name = "terrain_test"
+version = "0.1.0"
+authors = ["Rudi Floren <rudi.floren@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+amethyst = { path = "../amethyst", version = "0.10.0" }
+amethyst_derive = { path = "../amethyst/amethyst_derive", version = "0.3.0" }
+log = "*"
+glsl-layout = "*"
+gfx = "*"
+[profile.dev]
+opt-level = 2
