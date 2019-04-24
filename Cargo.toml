@@ -1,14 +1,20 @@
-[package]
-name = "terrain_test"
-version = "0.1.0"
-authors = ["Rudi Floren <rudi.floren@gmail.com>"]
-edition = "2018"
+[workspace]
 
-[dependencies]
-amethyst = { path = "../amethyst", version = "0.10.0" }
-amethyst_derive = { path = "../amethyst/amethyst_derive", version = "0.3.0" }
-log = "*"
-glsl-layout = "*"
-gfx = "*"
+members = [
+   "amethyst_terrain",
+   "game",
+   "cnquadtree"
+]
+
+
+[profile.test] 
+opt-level = 0
+
 [profile.dev]
-opt-level = 2
+opt-level = 1
+
+
+# [patch.crates-io]
+# gfx-hal = { git = "https://github.com/gfx-rs/gfx.git" }
+# gfx-backend-vulkan = { git = "https://github.com/gfx-rs/gfx.git" }
+# gfx-backend-empty = { git = "https://github.com/gfx-rs/gfx.git" }

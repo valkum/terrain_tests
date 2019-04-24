@@ -1,0 +1,21 @@
+[package]
+name = "game"
+version = "0.1.0"
+authors = ["Rudi Floren <rudi.floren@gmail.com>"]
+edition = "2018"
+description = "Test game"
+
+[dependencies]
+amethyst = { git = "https://github.com/valkum/amethyst", rev = "5bdbff10a31d8f0b7a480eea1210497666131a4d" }
+amethyst_derive = { git = "https://github.com/valkum/amethyst", rev = "5bdbff10a31d8f0b7a480eea1210497666131a4d" }
+amethyst_rendy = { git = "https://github.com/valkum/amethyst", rev = "5bdbff10a31d8f0b7a480eea1210497666131a4d" }
+amethyst_terrain = {path = "../amethyst_terrain", version = "0.1.0" }
+log = "*"
+serde = { version = "1.0", features = ["derive"] }
+
+
+[features]
+#default = ["vulkan"]
+
+vulkan = ["amethyst_rendy/vulkan", "amethyst_terrain/vulkan"]
+metal = ["amethyst_rendy/metal", "amethyst_terrain/metal"]
