@@ -8,33 +8,33 @@ Prefab (
         ),
         (
             data: (
-                graphics: (
-                    mesh: Asset(File ("mesh/teapot.obj", ObjFormat, ())),
-                    material: (
-                        albedo: Data(Rgba((1.0, 0.0, 0.0, 1.0,), (channel: Srgb),)),
-                    ),
+                mesh: Asset(File ("mesh/teapot.obj", ("OBJ", ()))),
+                material: (
+                    normal: File("texture/red_brick_normal.jpg", ("IMAGE", (repr: Unorm))),
+                    albedo: File("texture/red_brick_diffuse.jpg", ("IMAGE", (repr: Srgb))),
+                    metallic_roughness: File("texture/red_brick_roughness.jpg", ("IMAGE", (repr: Unorm))),
                 ),
                 transform: (
-                    translation: (0.0, 5.0, 0.0),
+                    translation: (0.0, 50.0, 512.0),
                 ),
             ),
         ),
-        (
-            data: (
-                transform: (
-                    translation: (512.0, 15.0, 512.0),
-                    rotation: (0.0, 0., 1., 1.0),
-                ),
-                camera: Perspective((
-                    aspect: 1.3,
-                    fovy: 1.0471975512,
-                    znear: 0.1,
-                    zfar: 2000.0,
-                )),
-                // fly control tag
-                control_tag: (),
-            ),
-        ),
+        // (
+        //     data: (
+        //         transform: (
+        //             translation: (512.0, 15.0, 512.0),
+        //             rotation: (0.0, 0., 1., 1.0),
+        //         ),
+        //         camera: Perspective((
+        //             aspect: 1.3,
+        //             fovy: 1.0471975512,
+        //             znear: 0.1,
+        //             zfar: 2000.0,
+        //         )),
+        //         // fly control tag
+        //         control_tag: (),
+        //     ),
+        // ),
         (
             data: (
                 transform: Transform (
@@ -42,8 +42,9 @@ Prefab (
                 ),
                 light: (
                     light: Directional((
-                        direction: (512.0, 0.0, 512.0),
-                        color: (0.78823529411764705882352941176471, 0.88235294117647058823529411764706, 1.0, 1.0),
+                        direction: [512.0, -128.0, 512.0],
+                        intensity: 0.13,
+                        color: Srgb(0.788, 0.882, 1.0),
                     )),
                 ),
             ),
@@ -53,9 +54,11 @@ Prefab (
                 terrain: (
                     size: 1024,
                     max_level: 4,
-                    heightmap: File("texture/test2_1024x1024.png", Png, (channel: Srgb)),
-                    normal: File("texture/test2_1024x1024_normal.png", Png, (channel: Unorm)),
-                    albedo: File("texture/test2_1024x1024_albedo.png", Png, (channel: Srgb)),
+                    height_scale: 2000.0,
+                    heightmap: File("texture/test5_1024x1024.hdr", ("IMAGE", (format: (HDR), repr: Float))),
+                    normal: File("texture/test5_1024x1024_normal.png", ("IMAGE", (repr: Unorm))),
+                    albedo: File("texture/test5_1024x1024_albedo.png", ("IMAGE", (repr: Srgb))),
+                    // ambient_occlusion: File("texture/test5_1024x1024_occlusion.png", ("IMAGE", (repr: Unorm))),
                 ),
                 transform: (
                     translation: (0.0, 0.0, 0.0),

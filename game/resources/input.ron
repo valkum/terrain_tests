@@ -1,6 +1,6 @@
 (
     axes: {
-        "move_x": Emulated(
+        "horizontal": Emulated(
             pos: Key(D),
             neg: Key(A),
         ),
@@ -8,7 +8,7 @@
             pos: Key(E),
             neg: Key(Q),
         ),
-        "move_z": Emulated(
+        "vertical": Emulated(
             pos: Key(S),
             neg: Key(W),
         ),

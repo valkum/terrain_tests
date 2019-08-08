@@ -1,25 +1,23 @@
+//! Amethyst terrain rendering using Cardinal Neighbour Quadtrees for Level-of-Detail
+//! 
 #![warn(missing_docs, rust_2018_idioms, rust_2018_compatibility)]
-#![allow(dead_code)]
-#![allow(missing_docs)]
-#[macro_use]
-extern crate amethyst_derive;
-
-#[macro_use]
-extern crate shred_derive;
-
-#[macro_use]
-extern crate log;
+#![warn(dead_code)]
 
 pub use crate::{
     component::{
         Terrain, 
         ActiveTerrain,
     },
-    renderer::{
+    renderpass::{
         DrawTerrain,
+        DrawTerrainDesc,
+        RenderTerrain,
         TerrainConfig,
         TerrainViewMode,
     },
+    prefab::{
+        TerrainPrefab,
+    }
     // system::{
     //     TerrainSystem,
     // },
@@ -27,7 +25,7 @@ pub use crate::{
 
 
 
-
 mod component;
-mod renderer;
+mod renderpass;
 mod system;
+mod prefab;
