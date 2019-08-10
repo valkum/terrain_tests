@@ -1,7 +1,7 @@
 # Amethyst_terrain
 
 ## What is this?
-This is an expiremental render pass for terrains in Amethyst using [Cardinal Neighbor Quadtrees][cnquadtree] and tesselation for Level-of-Detail.
+This is an experimental render pass for terrains in Amethyst using [Cardinal Neighbor Quadtrees][cnquadtree] and tesselation for Level-of-Detail.
 
 ![Example Image](example.jpg)
 
@@ -11,28 +11,28 @@ This is an expiremental render pass for terrains in Amethyst using [Cardinal Nei
 A terrain heightmap is split based on the distance to the viewer using Cardinal Neighbor Quadtrees.
 Each leaf is tesselated in regards to its neighbor to avoid T-Junctions.
 
-After that a basic quad mesh is drawn using instanced attributes for each leaf.
+After that, a basic quad mesh is drawn using instanced attributes for each leaf.
 
 
 ## Future
-Tries to have a similar good performance as major engine solutions.
-First step is Unreal and Unity final step would be FarCry5's engine e.g.
+Tries to have comparable performance to major engine solutions.
+The first step is Unreal and Unity final step would be FarCry5's engine e.g.
 
 
 Some specific targets are:
-* Asset streaming and thus spliting of the terrain assets (heightmap, etc.) into tiles for each leaf
+* Asset streaming and thus splitting of the terrain assets (heightmap, etc.) into tiles for each leaf
 * Decals
 * Support in amethyst-atelier and the editor
 * Fallback for lower spec systems without tesselation support
 
 ## Limitations
-This approach uses tesselation and geomtry shaders and thus does currently not support metal or older opengl versions
+This approach uses tesselation and geometry shaders and thus does currently not support Metal or older OpenGL versions
 
 
-## Whats in here
+## What's in here
 * A [cnquadtree][cnquadtree_crate] crate implementing the algorithm from Safwan W. Qasem and Ameur A.
-* The renderpass for Amethyst in the crate [amethyst_terrain][amethyst_terrain_crate]
-* A simple demonstration crate implementing a [game][game_crate] with a simple terrain created with Quaea
+* The render pass for Amethyst in the crate [amethyst_terrain][amethyst_terrain_crate]
+* A simple demonstration crate implementing a [game][game_crate] with a simple terrain created with Gaea
 
 [cnquadtree_crate]: cnquadtree
 [amethyst_terrain_crate]: amethyst_terrain
