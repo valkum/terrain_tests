@@ -3,6 +3,7 @@
 ## What is this?
 This is an expiremental render pass for terrains in Amethyst using [Cardinal Neighbor Quadtrees][cnquadtree] and tesselation for Level-of-Detail.
 
+![Example Image](example.jpg)
 
 [cnquadtree]: https://doi.org/10.5120/ijca2015907501
 
