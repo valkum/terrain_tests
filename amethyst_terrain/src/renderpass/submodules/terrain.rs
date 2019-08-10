@@ -6,7 +6,7 @@ use crate::{
 use amethyst::{
     assets::{AssetStorage, Handle},
     core::{
-        ecs::{Read, ReadStorage, Resources, SystemData},
+        ecs::{Read, ReadStorage, World, SystemData},
         transform::Transform,
     },
     renderer::{
@@ -227,7 +227,7 @@ impl<B: Backend, T: for<'a> StaticTextureSet<'a>> TerrainSub<B, T> {
     fn try_insert(
         &mut self,
         factory: &Factory<B>,
-        res: &Resources,
+        res: &World,
         handle: &Handle<Terrain>,
     ) -> Option<TerrainState<B>> {
         #[cfg(feature = "profiler")]
@@ -297,7 +297,7 @@ impl<B: Backend, T: for<'a> StaticTextureSet<'a>> TerrainSub<B, T> {
     pub fn insert(
         &mut self,
         factory: &Factory<B>,
-        res: &Resources,
+        res: &World,
         handle: &Handle<Terrain>,
     ) -> Option<(TerrainId, bool)> {
         #[cfg(feature = "profiler")]

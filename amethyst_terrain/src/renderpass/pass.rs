@@ -8,7 +8,7 @@ use amethyst::{
         math::base::coordinates::XYZW,
         math::Vector3,
         math::Vector4,
-        ecs::{Entity, Join, Read, ReadExpect, ReadStorage, Resources, SystemData},
+        ecs::{Entity, Join, Read, ReadExpect, ReadStorage, World, SystemData, shred::ResourceId},
         Transform,
     },
     error::Error,
@@ -39,7 +39,6 @@ use amethyst::{
     window::ScreenDimensions,
 };
 
-use shred_derive::SystemData;
 use derivative::Derivative;
 use std::marker::PhantomData;
 
@@ -79,19 +78,19 @@ impl<B: Backend> DrawTerrainDesc<B> {
     }
 }
 
-impl<B: Backend> RenderGroupDesc<B, Resources> for DrawTerrainDesc<B> {
+impl<B: Backend> RenderGroupDesc<B, World> for DrawTerrainDesc<B> {
     fn build<'a>(
         self,
         _ctx: &GraphContext<B>,
         factory: &mut Factory<B>,
         queue: QueueId,
-        _aux: &Resources,
+        _aux: &World,
         framebuffer_width: u32,
         framebuffer_height: u32,
         subpass: hal::pass::Subpass<'_, B>,
         _buffers: Vec<NodeBuffer>,
         _images: Vec<NodeImage>,
-    ) -> Result<Box<dyn RenderGroup<B, Resources>>, failure::Error> {
+    ) -> Result<Box<dyn RenderGroup<B, World>>, failure::Error> {
 
         let env = EnvironmentSub::new(
             factory, 
@@ -187,14 +186,14 @@ struct TerrainPassData<'a> {
 }
 
 
-impl<B: Backend> RenderGroup<B, Resources> for DrawTerrain<B> {
+impl<B: Backend> RenderGroup<B, World> for DrawTerrain<B> {
     fn prepare(
         &mut self,
         factory: &Factory<B>,
         _queue: QueueId,
         index: usize,
         _subpass: hal::pass::Subpass<'_, B>,
-        resources: &Resources,
+        resources: &World,
     ) -> PrepareResult {
         log::trace!("prepare draw");
         let TerrainPassData{
@@ -268,7 +267,7 @@ impl<B: Backend> RenderGroup<B, Resources> for DrawTerrain<B> {
         mut encoder: RenderPassEncoder<'_, B>,
         index: usize,
         _subpass: hal::pass::Subpass<'_, B>,
-        _resources: &Resources,
+        _resources: &World,
     ) {
         profile_scope_impl!("draw terrain");
 
@@ -292,7 +291,7 @@ impl<B: Backend> RenderGroup<B, Resources> for DrawTerrain<B> {
         }
     }
 
-    fn dispose(self: Box<Self>, factory: &mut Factory<B>, _aux: &Resources) {
+    fn dispose(self: Box<Self>, factory: &mut Factory<B>, _aux: &World) {
         profile_scope_impl!("dispose");
         unsafe {
             factory

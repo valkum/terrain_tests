@@ -9,7 +9,7 @@ use amethyst::{
     assets::Processor,
     core::{
         ecs::{
-            DispatcherBuilder, Resources
+            DispatcherBuilder, World
         },
     },
     error::Error,
@@ -111,6 +111,7 @@ impl RenderTerrain {
 impl<B: Backend> RenderPlugin<B> for RenderTerrain {
     fn on_build<'a, 'b>(
         &mut self,
+        _world: &mut World,
         builder: &mut DispatcherBuilder<'a, 'b>,
     ) -> Result<(), Error> {
         builder.add(Processor::<Terrain>::new(), "terrain_processor", &[]);
@@ -121,7 +122,7 @@ impl<B: Backend> RenderPlugin<B> for RenderTerrain {
         &mut self,
         plan: &mut RenderPlan<B>,
         _factory: &mut Factory<B>,
-        _res: &Resources,
+        _res: &World,
     ) -> Result<(), Error> {
         plan.extend_target(self.target, |ctx| {
             ctx.add(RenderOrder::Opaque, DrawTerrainDesc::new().builder())?;

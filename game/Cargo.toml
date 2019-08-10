@@ -6,8 +6,8 @@ edition = "2018"
 description = "Test game"
 
 [dependencies]
-amethyst = { path = "../../amethyst", version = "0.12.0", features= ["gltf"]}
-amethyst_derive = { path = "../../amethyst/amethyst_derive", version = "0.5.0" }
+amethyst = { git = "https://github.com/amethyst/amethyst", rev = "2bb0c6e04a", features= ["gltf"]}
+amethyst_derive = { git = "https://github.com/amethyst/amethyst", rev = "2bb0c6e04a" }
 amethyst_terrain = {path = "../amethyst_terrain", version = "0.1.0" }
 derivative = "1.0"
 log = "0.4.8"

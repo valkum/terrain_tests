@@ -10,7 +10,7 @@ extern crate log;
 use amethyst::{
     assets::{
         Completion,
-        PrefabLoader, PrefabLoaderSystem, ProgressCounter, RonFormat,
+        PrefabLoader, PrefabLoaderSystemDesc, ProgressCounter, RonFormat,
     },
     controls::{
         ArcBallControlBundle, ArcBallControlTag, FlyControlBundle, FlyControlTag,
@@ -23,7 +23,7 @@ use amethyst::{
     ecs::prelude::*,
     input::{is_key_down, InputBundle, StringBindings},
     prelude::*,
-    gltf::GltfSceneLoaderSystem,
+    gltf::GltfSceneLoaderSystemDesc,
     utils::{
         application_root_dir,
         auto_fov::{AutoFov, AutoFovSystem},
@@ -102,7 +102,7 @@ impl Example {
 impl SimpleState for Example {
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
         let StateData { world, .. } = data;
-        world.add_resource(TerrainConfig {
+        world.insert(TerrainConfig {
             view_mode: TerrainViewMode::Wireframe,
             ..Default::default()
         });
@@ -131,7 +131,7 @@ impl SimpleState for Example {
         
 
         // Configure width of lines. Optional step
-        world.add_resource(DebugLinesParams {
+        world.insert(DebugLinesParams {
             line_width: 1.0 / 50.0,
         });
         let mut debug_lines_component = DebugLinesComponent::with_capacity(100);
@@ -221,7 +221,7 @@ impl SimpleState for Example {
             // })
             .build();
 
-        world.add_resource(ActiveCamera { entity: Some(camera) })
+        world.insert(ActiveCamera { entity: Some(camera) })
     }
     fn update(&mut self, data: &mut StateData<GameData>) -> SimpleTrans {
         if !self.initialised {
@@ -334,16 +334,30 @@ fn main() -> amethyst::Result<()> {
 
 
     let game_data = GameDataBuilder::default()
+     .with_bundle(
+            RenderingBundle::<DefaultBackend>::new()
+                .with_plugin(
+                    RenderToWindow::from_config_path(display_config)
+                        .with_clear([0.34, 0.36, 0.52, 1.0]),
+                )
+                .with_plugin(RenderTerrain::default())
+                .with_plugin(RenderShaded3D::default())
+                .with_plugin(RenderDebugLines::default())
+                .with_plugin(RenderSkybox::with_colors(
+                    Srgb::new(0.82, 0.51, 0.50),
+                    Srgb::new(0.18, 0.11, 0.85),
+                )),
+        )?
         // .with(TerrainSystem::default(), "terrain_system", &["prefab"])
         .with(OrbitSystem, "orbit", &[])
-        .with(AutoFovSystem::default(), "auto_fov", &[])
-        .with(
-            PrefabLoaderSystem::<ScenePrefabData>::default(),
+        .with(AutoFovSystem::new(), "auto_fov", &[])
+        .with_system_desc(
+            PrefabLoaderSystemDesc::<ScenePrefabData>::default(),
             "scene_loader",
             &[],
         )
-        .with(
-            GltfSceneLoaderSystem::default(),
+        .with_system_desc(
+            GltfSceneLoaderSystemDesc::default(),
             "gltf_loader",
             &["scene_loader"], // This is important so that entity instantiation is performed in a single frame.
         )
@@ -362,21 +376,7 @@ fn main() -> amethyst::Result<()> {
         .with_bundle(TransformBundle::new().with_dep(&[
             "orbit",
             "fly_movement"
-        ]))?
-        .with_bundle(
-            RenderingBundle::<DefaultBackend>::new()
-                .with_plugin(
-                    RenderToWindow::from_config_path(display_config)
-                        .with_clear([0.34, 0.36, 0.52, 1.0]),
-                )
-                .with_plugin(RenderTerrain::default())
-                .with_plugin(RenderShaded3D::default())
-                .with_plugin(RenderDebugLines::default())
-                .with_plugin(RenderSkybox::with_colors(
-                    Srgb::new(0.82, 0.51, 0.50),
-                    Srgb::new(0.18, 0.11, 0.85),
-                )),
-        )?;
+        ]))?;
 
     let mut game = Application::new(&resources, Example::new(), game_data)?;
 

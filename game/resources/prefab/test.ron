@@ -53,7 +53,7 @@ Prefab (
             data: (
                 terrain: (
                     size: 1024,
-                    max_level: 4,
+                    max_level: 6,
                     height_scale: 2000.0,
                     heightmap: File("texture/test5_1024x1024.hdr", ("IMAGE", (format: (HDR), repr: Float))),
                     normal: File("texture/test5_1024x1024_normal.png", ("IMAGE", (repr: Unorm))),
