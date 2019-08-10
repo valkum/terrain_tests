@@ -1,7 +1,7 @@
 # Amethyst_terrain
 
 ## What is this?
-This is an expiremental renderpass for terrains in Amethyst using [Cardinal Neighbor Quadtrees][cnquadtree] and tesselation for Level-of-Detail.
+This is an expiremental render pass for terrains in Amethyst using [Cardinal Neighbor Quadtrees][cnquadtree] and tesselation for Level-of-Detail.
 
 
 [cnquadtree]: https://doi.org/10.5120/ijca2015907501
@@ -10,27 +10,22 @@ This is an expiremental renderpass for terrains in Amethyst using [Cardinal Neig
 A terrain heightmap is split based on the distance to the viewer using Cardinal Neighbor Quadtrees.
 Each leaf is tesselated in regards to its neighbor to avoid T-Junctions.
 
-After that a basic quad mesh is drawn using instaced attributes for each leaf.
+After that a basic quad mesh is drawn using instanced attributes for each leaf.
 
 
 ## Future
 Tries to have a similar good performance as major engine solutions.
-First step is Unreal and Unity final step would be FarCry5s engine.
+First step is Unreal and Unity final step would be FarCry5's engine e.g.
 
 
 Some specific targets are:
-* Asset streaming and thus spliting of the terrain assets (heightmap, etc.)
+* Asset streaming and thus spliting of the terrain assets (heightmap, etc.) into tiles for each leaf
 * Decals
-* Integration into amethyst-atelier
+* Support in amethyst-atelier and the editor
 * Fallback for lower spec systems without tesselation support
 
 ## Limitations
-This approach uses tesselation and thus does currently not support metal or opengl < 4.1
-
-
-## Building
-Currently this [PR][https://github.com/amethyst/amethyst/pull/1866] is required to run this.
-The crates here will try to load amethyst from the dir ../amethyst until the PR landed and 0.13 is released.
+This approach uses tesselation and geomtry shaders and thus does currently not support metal or older opengl versions
 
 
 ## Whats in here
