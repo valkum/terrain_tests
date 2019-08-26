@@ -342,8 +342,8 @@ fn build_terrain_pipeline<B: Backend>(
                 Some(&shader_fragment),
                 Some(&shader_tsc),
                 Some(&shader_tse),
-                Some(&shader_geom)
-                // None,
+                // Some(&shader_geom)
+                None,
             )
         )
         .with_layout(&pipeline_layout)
@@ -367,7 +367,7 @@ fn build_terrain_pipeline<B: Backend>(
         factory.destroy_shader_module(shader_vertex);
         factory.destroy_shader_module(shader_tsc);
         factory.destroy_shader_module(shader_tse);
-        factory.destroy_shader_module(shader_geom);
+        // factory.destroy_shader_module(shader_geom);
         factory.destroy_shader_module(shader_fragment);
     }
 

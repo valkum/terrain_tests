@@ -1,12 +1,13 @@
 #version 450
 
 // Inputs
-layout(location = 0) in vec3 inNormal;
-layout(location = 1) in vec2 inUV;
-layout(location = 2) in vec3 inViewVec;
-layout(location = 3) in vec3 inWorldPos;
-layout(location = 4) in vec4 wire_color;
-layout(location = 5) noperspective in vec3 edge_dist;
+layout(location = 0) in VertexData {
+    vec3 position;
+    vec3 normal;
+    vec3 tangent;
+    vec2 tex_coord;
+    vec4 color;
+} vertex;
 
 // Uniforms
 // Set 0 Env
@@ -141,56 +142,54 @@ vec3 compute_light(vec3 attenuation,
 
 void main()
 {
-    vec4 albedo_alpha       = texture(albedo, inUV);
+    vec4 albedo_alpha       = texture(albedo, vertex.tex_coord);
 
     float alpha             = albedo_alpha.a;
     // if(alpha < 1.0) discard;t
 
     vec3 albedo             = albedo_alpha.rgb;
+    vec3 normal = texture(normal, vertex.tex_coord).rgb;
+    float metallic = 0.0;
+    float roughness = 1.0;
 
-    //vec4 color = vec4(mix(0.0, 1.0, tileScale / 1000.0), mix(1.0, 0.0, tileScale / 1000.0), 0.0, 1.0);
-    // vec3 normal = texture(normal, gs.tex_coord).rgb;
-    vec3 normal = texture(normal, inUV).rgb;
-    float metallic = 0.;
-    float roughness = 1.;
+    // normal conversion
+    normal = normal * 2 - 1;
 
-    normal = normal * 2. - 1.;
+    float roughness2 = roughness * roughness;
+    vec3 fresnel_base = mix(vec3(0.04), albedo, metallic);
 
-    float roughness2 = 1.;
-    vec3 fresnel_base = mix(vec3(0.04), albedo, 0.);
-
-    vec3 vertex_normal = normalize(inNormal);
-    vec3 vertex_tangent = normalize(vec3(0.0, 0.0, 1.0));
+    vec3 vertex_normal = normalize(vertex.normal);
+    vec3 vertex_tangent = normalize(vertex.tangent - vertex_normal * dot(vertex_normal, vertex.tangent));
     vec3 vertex_bitangent = normalize(cross(vertex_normal, vertex_tangent));
     mat3 vertex_basis = mat3(vertex_tangent, vertex_bitangent, vertex_normal);
     normal = normalize(vertex_basis * normal);
 
 
-    // vec3 view_direction = normalize(camera_position - inPosition.xyz);
-    vec3 view_direction = normalize(inViewVec);
+    vec3 view_direction = normalize(camera_position - vertex.position);
 
     vec3 lighting = vec3(0.0);
-    // for (uint i = 0u; i < point_light_count; i++) {
-    //     vec3 light_direction = normalize(plight[i].position - gs.position);
-    //     float attenuation = plight[i].intensity / dot(light_direction, light_direction);
+    for (uint i = 0u; i < point_light_count; i++) {
+        vec3 unnormalizedLightVector = (plight[i].position - vertex.position);
+        vec3 light_direction = normalize(unnormalizedLightVector);
+        float attenuation = plight[i].intensity / dot(unnormalizedLightVector, unnormalizedLightVector);
 
-    //     vec3 light = compute_light(vec3(attenuation),
-    //                                plight[i].color,
-    //                                view_direction,
-    //                                light_direction,
-    //                                albedo,
-    //                                normal,
-    //                                roughness2,
-    //                                metallic,
-    //                                fresnel_base);
+        vec3 light = compute_light(vec3(attenuation),
+                                   plight[i].color,
+                                   view_direction,
+                                   light_direction,
+                                   albedo,
+                                   normal,
+                                   roughness2,
+                                   metallic,
+                                   fresnel_base);
 
 
-    //     lighting += light;
-    // }
+        lighting += light;
+    }
 
     for (uint i = 0u; i < directional_light_count; i++) {
         vec3 light_direction = -normalize(dlight[i].direction);
-        float attenuation = 1.0;
+        float attenuation = dlight[i].intensity;
 
         vec3 light = compute_light(vec3(attenuation),
                                    dlight[i].color,
@@ -204,73 +203,63 @@ void main()
         lighting += light;
     }
 
-    // for (int i = 0; i < spot_light_count; i++) {
-    //     vec3 light_vec = slight[i].position - gs.position;
-    //     vec3 normalized_light_vec = normalize(light_vec);
+    for (int i = 0; i < spot_light_count; i++) {
+        vec3 light_vec = slight[i].position - vertex.position;
+        vec3 normalized_light_vec = normalize(light_vec);
 
-    //     // The distance between the current fragment and the "core" of the light
-    //     float light_length = length(light_vec);
+        // The distance between the current fragment and the "core" of the light
+        float light_length = length(light_vec);
 
-    //     // The allowed "length", everything after this won't be lit.
-    //     // Later on we are dividing by this range, so it can't be 0
-    //     float range = max(slight[i].range, 0.00001);
+        // The allowed "length", everything after this won't be lit.
+        // Later on we are dividing by this range, so it can't be 0
+        float range = max(slight[i].range, 0.00001);
 
-    //     // get normalized range, so everything 0..1 could be lit, everything else can't.
-    //     float normalized_range = light_length / max(0.00001, range);
+        // get normalized range, so everything 0..1 could be lit, everything else can't.
+        float normalized_range = light_length / max(0.00001, range);
 
-    //     // The attenuation for the "range". If we would only consider this, we'd have a
-    //     // point light instead, so we need to also check for the spot angle and direction.
-    //     float range_attenuation = max(0.0, 1.0 - normalized_range);
+        // The attenuation for the "range". If we would only consider this, we'd have a
+        // point light instead, so we need to also check for the spot angle and direction.
+        float range_attenuation = max(0.0, 1.0 - normalized_range);
 
-    //     // this is actually the cosine of the angle, so it can be compared with the
-    //     // "dotted" frag_angle below a lot cheaper.
-    //     float spot_angle = max(slight[i].angle, 0.00001);
-    //     vec3 spot_direction = normalize(slight[i].direction);
-    //     float smoothness = 1.0 - slight[i].smoothness;
+        // this is actually the cosine of the angle, so it can be compared with the
+        // "dotted" frag_angle below a lot cheaper.
+        float spot_angle = max(slight[i].angle, 0.00001);
+        vec3 spot_direction = normalize(slight[i].direction);
+        float smoothness = 1.0 - slight[i].smoothness;
 
-    //     // Here we check if the current fragment is within the "ring" of the spotlight.
-    //     float frag_angle = dot(spot_direction, -normalized_light_vec);
+        // Here we check if the current fragment is within the "ring" of the spotlight.
+        float frag_angle = dot(spot_direction, -normalized_light_vec);
 
-    //     // so that the ring_attenuation won't be > 1
-    //     frag_angle = max(frag_angle, spot_angle);
+        // so that the ring_attenuation won't be > 1
+        frag_angle = max(frag_angle, spot_angle);
 
-    //     // How much is this outside of the ring? (let's call it "rim")
-    //     // Also smooth this out.
-    //     float rim_attenuation = pow(max((1.0 - frag_angle) / (1.0 - spot_angle), 0.00001), smoothness);
+        // How much is this outside of the ring? (let's call it "rim")
+        // Also smooth this out.
+        float rim_attenuation = pow(max((1.0 - frag_angle) / (1.0 - spot_angle), 0.00001), smoothness);
 
-    //     // How much is this inside the "ring"?
-    //     float ring_attenuation = 1.0 - rim_attenuation;
+        // How much is this inside the "ring"?
+        float ring_attenuation = 1.0 - rim_attenuation;
 
-    //     // combine the attenuations and intensity
-    //     float attenuation = range_attenuation * ring_attenuation * slight[i].intensity;
+        // combine the attenuations and intensity
+        float attenuation = range_attenuation * ring_attenuation * slight[i].intensity;
 
-    //     vec3 light = compute_light(vec3(attenuation),
-    //                                slight[i].color,
-    //                                view_direction,
-    //                                normalize(light_vec),
-    //                                albedo,
-    //                                normal,
-    //                                roughness2,
-    //                                metallic,
-    //                                fresnel_base);
-    //     lighting += light;
-    // }
+        vec3 light = compute_light(vec3(attenuation),
+                                   slight[i].color,
+                                   view_direction,
+                                   normalize(light_vec),
+                                   albedo,
+                                   normal,
+                                   roughness2,
+                                   metallic,
+                                   fresnel_base);
+        lighting += light;
+    }
 
 
 
-    vec3 ambient = vec3(0.5) * albedo;
+    vec3 ambient = ambient_color * albedo;
     vec3 color = ambient + lighting;
 
-    if (wireframe){
-        // Wireframe junk
-        float d = min(edge_dist.x, edge_dist.y);
-        d = min(d, edge_dist.z);
 
-        float LineWidth = 0.75;
-        float mixVal = smoothstep(LineWidth - 1, LineWidth + 1, d);
-
-        fragColor = mix(wire_color, vec4(color, 1.0), mixVal);
-    } else{
-        fragColor = vec4(color, 1.0);
-    }
+    fragColor = vec4(color, 1.0);
 }

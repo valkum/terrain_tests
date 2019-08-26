@@ -3,19 +3,39 @@ Prefab (
     entities: [
         (
             data: (
-                light: (ambient_color: ((0.025098039215686274509803921568627, 0.061176470588235294117647058823529, 0.1, 0.2))),
+                light: (ambient_color: ((0.0, 0.0, 0.0, 0.0))),
             ),
         ),
+        // (
+        //     data: (
+        //         mesh: Asset(File ("model/teapot.obj", ("OBJ", ()))),
+        //         material: (
+        //             normal: File("texture/red_brick_normal.jpg", ("IMAGE", (repr: Unorm))),
+        //             albedo: File("texture/red_brick_diffuse.jpg", ("IMAGE", (repr: Srgb))),
+        //             metallic_roughness: File("texture/red_brick_roughness.jpg", ("IMAGE", (repr: Unorm))),
+        //         ),
+        //         transform: (
+        //             translation: (0.0, 50.0, 512.0),
+        //         ),
+        //     ),
+        // ),
         (
             data: (
-                mesh: Asset(File ("mesh/teapot.obj", ("OBJ", ()))),
-                material: (
-                    normal: File("texture/red_brick_normal.jpg", ("IMAGE", (repr: Unorm))),
-                    albedo: File("texture/red_brick_diffuse.jpg", ("IMAGE", (repr: Srgb))),
-                    metallic_roughness: File("texture/red_brick_roughness.jpg", ("IMAGE", (repr: Unorm))),
-                ),
+                gltf: File("model/helmet.gltf", ()),
                 transform: (
-                    translation: (0.0, 50.0, 512.0),
+                    translation: (100.0, 5.0, 512.0),
+                    rotation: (0.0, 1.0, 0.0, 0.0),
+                    scale: (5.0, 5.0, 5.0)
+                ),
+            ),
+        ),
+         (
+            data: (
+                gltf: File("model/helmet.gltf", ()),
+                transform: (
+                    translation: (512.0, 40.0, 512.0),
+                    rotation: (0.0, 1.0, 0.0, 0.0),
+                    scale: (5.0, 5.0, 5.0)
                 ),
             ),
         ),
@@ -43,8 +63,22 @@ Prefab (
                 light: (
                     light: Directional((
                         direction: [512.0, -128.0, 512.0],
-                        intensity: 0.13,
-                        color: Srgb(0.788, 0.882, 1.0),
+                        intensity: 1.0,
+                        color: Srgb(1, 0.9, 0.575),
+                    )),
+                ),
+            ),
+        ),
+        (
+            data: (
+                transform: Transform (
+                     translation: (100.0, 15.0, 520.0),
+                ),
+                gltf: File("model/light_bulp.glb", ()),
+                light: (
+                    light: Point((
+                        intensity: 10.0,
+                        color: Srgb(1, 0.9, 0.575),
                     )),
                 ),
             ),

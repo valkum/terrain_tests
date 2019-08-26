@@ -12,17 +12,17 @@ use amethyst::{
 use serde::{Deserialize, Serialize};
 use crate::Terrain;
 
+/// PrefabData for loading ´Terrain´s
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(default, bound = "")]
-/// Prefab for ´Terrain´
 pub struct TerrainPrefab {
-    size: u32,
-    max_level: u8,
-    height_scale: f32,
-    height_offset: f32,
-    heightmap: Option<TexturePrefab>,
-    normal: Option<TexturePrefab>,
-    albedo: Option<TexturePrefab>,
+    pub size: u32,
+    pub max_level: u8,
+    pub height_scale: f32,
+    pub height_offset: f32,
+    pub heightmap: Option<TexturePrefab>,
+    pub normal: Option<TexturePrefab>,
+    pub albedo: Option<TexturePrefab>,
     #[serde(skip)]
     handle: Option<Handle<Terrain>>,
 }
@@ -72,7 +72,7 @@ impl<'a> PrefabData<'a> for TerrainPrefab {
         ReadExpect<'a, Loader>,
         Read<'a, AssetStorage<Terrain>>,
     );
-    type Result = ();
+    type Result = (); 
 
     fn add_to_entity(
         &self,

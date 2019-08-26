@@ -11,6 +11,7 @@ use amethyst::{
     assets::{
         Completion,
         PrefabLoader, PrefabLoaderSystemDesc, ProgressCounter, RonFormat,
+        HotReloadBundle, HotReloadStrategy
     },
     controls::{
         ArcBallControlBundle, ArcBallControlTag, FlyControlBundle, FlyControlTag,
@@ -45,8 +46,10 @@ use std::path::Path;
 
 use prefab_data::{Scene, ScenePrefabData};
 
+use overfly::{Overfly, OverflySystem, Coord3};
+use flo_curves::bezier::Curve;
 mod prefab_data;
-
+mod overfly;
 
 
 struct Orbit {
@@ -82,12 +85,19 @@ impl<'a> System<'a> for OrbitSystem {
         }
     }
 }
-
-#[derive(Default)]
+#[derive(Debug)]
+enum ViewMode {
+    Overfly,
+    FlyControlTag
+}
 struct Example {
     progress: Option<ProgressCounter>,
     entity: Option<Entity>,
     initialised: bool,
+    camera: Option<Entity>,
+    view_mode: ViewMode,
+    dispatcher: Dispatcher<'static, 'static>,
+
 }
 impl Example {
     pub fn new() -> Self {
@@ -95,6 +105,38 @@ impl Example {
             entity: None,
             initialised: false,
             progress: None,
+            camera: None,
+            view_mode: ViewMode::Overfly,
+            dispatcher: DispatcherBuilder::new().with(OverflySystem::default(), "overfly", &[]).build()
+        }
+    }
+
+    fn get_curve() -> Overfly {
+        let curves = vec![
+            Curve { 
+                start_point: Coord3(512.0, 100.0, 0.0),
+                control_points: (Coord3(768.0, 150.0, 0.0), Coord3(1024.0, 100.0, 256.0),),
+                end_point: Coord3(1024.0, 200.0, 512.0),
+            },
+            Curve { 
+                start_point: Coord3(1024.0, 200.0, 512.0),
+                control_points: (Coord3(1024.0, 300.0, 768.0), Coord3(768.0, 300.0, 1024.0),),
+                end_point: Coord3(512.0, 300.0, 1024.0),
+            },
+            Curve { 
+                start_point: Coord3(512.0, 300.0, 1024.0),
+                control_points: (Coord3(256.0, 300.0, 1024.0), Coord3(0.0, 400.0, 768.0),),
+                end_point: Coord3(0.0, 200.0, 512.0),
+            },
+            Curve { 
+                start_point: Coord3(0.0, 200.0, 512.0),
+                control_points: (Coord3(0.0, 0.0, 256.0), Coord3(256.0, 50.0, 0.0),),
+                end_point: Coord3(512.0, 100.0, 0.0),
+            }
+        ];
+        Overfly {
+            curves,
+            time_scale: 0.5
         }
     }
 }
@@ -109,6 +151,7 @@ impl SimpleState for Example {
 
         // world.register::<Transform>();
         world.register::<Orbit>();
+        world.register::<Overfly>();
 
 
         self.progress = Some(ProgressCounter::default());
@@ -205,12 +248,15 @@ impl SimpleState for Example {
         auto_fov.set_base_fovx(std::f32::consts::FRAC_PI_3);
         auto_fov.set_base_aspect_ratio(1, 1);
 
-        let camera = world
+        
+
+        self.camera = Some(world
             .create_entity()
             .with(Camera::standard_3d(16.0, 9.0))
             .with(pos)
             .with(auto_fov)
-            .with(FlyControlTag)
+            // .with(FlyControlTag)
+            .with(Self::get_curve())
             // .with(ArcBallControlTag {target: center_entity, distance: 100.})
             // .with(Orbit {
             //     axis: Unit::new_normalize(Vector3::y()),
@@ -219,9 +265,9 @@ impl SimpleState for Example {
             //     radius: 300.,
             //     height: 150.,
             // })
-            .build();
+            .build());
 
-        world.insert(ActiveCamera { entity: Some(camera) })
+        world.insert(ActiveCamera { entity: self.camera })
     }
     fn update(&mut self, data: &mut StateData<GameData>) -> SimpleTrans {
         if !self.initialised {
@@ -253,6 +299,11 @@ impl SimpleState for Example {
         Trans::None
     }
 
+    fn fixed_update(&mut self, data: StateData<GameData>) -> SimpleTrans {
+        self.dispatcher.dispatch(&data.world);
+        Trans::None
+    }
+
     fn handle_event(
         &mut self,
         data: StateData<'_, GameData<'_, '_>>,
@@ -262,19 +313,24 @@ impl SimpleState for Example {
             if is_key_down(&event, VirtualKeyCode::Escape) {
                 Trans::Quit
             } else if is_key_down(&event, VirtualKeyCode::R) {
-                data.world.exec(
-                    |(mut transforms, camera): (WriteStorage<Transform>, ReadStorage<Camera>)| {
-                        for (transform, _camera) in (&mut transforms, &camera).join() {
-                            let _curr = transform.translation().clone();
-                            transform
-                                .set_translation_xyz(512., 512., 512.)
-                                .face_towards(
-                                    Vector3::new(512., 0., 512.),
-                                    Vector3::new(1., 0., 0.),
-                                );
-                        }
-                    },
-                );
+                if let Some(camera) = self.camera {
+                    self.view_mode = match self.view_mode {
+                        ViewMode::FlyControlTag => {
+                            data.world.exec(|(mut overfly, mut fly): (WriteStorage<Overfly>, WriteStorage<FlyControlTag>)| {
+                                fly.remove(camera);
+                                overfly.insert(camera, Self::get_curve());
+                            });
+                            ViewMode::Overfly},
+                        ViewMode::Overfly => {
+                            data.world.exec(|(mut overfly, mut fly): (WriteStorage<Overfly>, WriteStorage<FlyControlTag>)| {
+                                overfly.remove(camera);
+                                fly.insert(camera, FlyControlTag);
+                            });
+                            ViewMode::FlyControlTag
+                        },
+                    };
+                    debug!("Switching to {:?}", &self.view_mode);
+                }    
                 Trans::None
             } else if is_key_down(&event, VirtualKeyCode::F11)
                 || is_key_down(&event, VirtualKeyCode::Return)
@@ -312,7 +368,7 @@ fn main() -> amethyst::Result<()> {
     amethyst::Logger::from_config(amethyst::LoggerConfig {
         // log_file: Some("terrain.log".into()),
         // level_filter: log::LevelFilter::Trace,
-        level_filter: log::LevelFilter::Error,
+        level_filter: log::LevelFilter::Warn,
         ..Default::default()
     })
     .level_for("amethyst_utils::fps_counter", log::LevelFilter::Debug)
@@ -334,20 +390,6 @@ fn main() -> amethyst::Result<()> {
 
 
     let game_data = GameDataBuilder::default()
-     .with_bundle(
-            RenderingBundle::<DefaultBackend>::new()
-                .with_plugin(
-                    RenderToWindow::from_config_path(display_config)
-                        .with_clear([0.34, 0.36, 0.52, 1.0]),
-                )
-                .with_plugin(RenderTerrain::default())
-                .with_plugin(RenderShaded3D::default())
-                .with_plugin(RenderDebugLines::default())
-                .with_plugin(RenderSkybox::with_colors(
-                    Srgb::new(0.82, 0.51, 0.50),
-                    Srgb::new(0.18, 0.11, 0.85),
-                )),
-        )?
         // .with(TerrainSystem::default(), "terrain_system", &["prefab"])
         .with(OrbitSystem, "orbit", &[])
         .with(AutoFovSystem::new(), "auto_fov", &[])
@@ -364,6 +406,7 @@ fn main() -> amethyst::Result<()> {
         .with_bundle(
             InputBundle::<StringBindings>::new().with_bindings_from_file(&key_bindings_path)?,
         )?
+        .with_bundle(HotReloadBundle::new(HotReloadStrategy::every(2)))?
         .with_bundle(
             FlyControlBundle::<StringBindings>::new(
                 Some("horizontal".into()),
@@ -376,7 +419,21 @@ fn main() -> amethyst::Result<()> {
         .with_bundle(TransformBundle::new().with_dep(&[
             "orbit",
             "fly_movement"
-        ]))?;
+        ]))?
+        .with_bundle(
+            RenderingBundle::<DefaultBackend>::new()
+                .with_plugin(
+                    RenderToWindow::from_config_path(display_config)
+                        .with_clear([0.34, 0.36, 0.52, 1.0]),
+                )
+                .with_plugin(RenderTerrain::default())
+                .with_plugin(RenderPbr3D::default())
+                .with_plugin(RenderDebugLines::default())
+                .with_plugin(RenderSkybox::with_colors(
+                    Srgb::new(0.82, 0.51, 0.50),
+                    Srgb::new(0.18, 0.11, 0.85),
+                )),
+        )?;
 
     let mut game = Application::new(&resources, Example::new(), game_data)?;
 
